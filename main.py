@@ -1,7 +1,5 @@
 import base64
-import binascii
 import lzma
-import sys
 from PIL import Image
 
 
@@ -11,7 +9,7 @@ def main():
     print(art)
     print(art.generate_art_text_string())
 
-    art.generate_art_image_32x32(10).save()
+    art.generate_art_image_32x32(10).save("output/image.png")
 
 
 class Art:
@@ -20,8 +18,13 @@ class Art:
     __raw_art_data: list[int] = None
     __chunked_raw_art_data: list[list[int]] = None
 
-    def __init__(self, art_text_string: str = None, raw_art_data: list[int] = None,
-                 chunked_raw_art_data: list[list[int]] = None, auto_generate_data: bool = True):
+    def __init__(
+        self,
+        art_text_string: str = None,
+        raw_art_data: list[int] = None,
+        chunked_raw_art_data: list[list[int]] = None,
+        auto_generate_data: bool = True,
+    ):
         self.__art_text_string = art_text_string
         self.__raw_art_data = raw_art_data
         self.__chunked_raw_art_data = chunked_raw_art_data
@@ -41,25 +44,34 @@ class Art:
         data = lzma.decompress(compressed_data_from_string)
         length = len(data)
         if length != 1024:
-            raise ValueError(f'Data length mismatch ({length} != 1024)')
+            raise ValueError(f"Data length mismatch ({length} != 1024)")
         self.__raw_art_data = list(data)
         return self.__raw_art_data
 
     def generate_chunked_raw_art_data(self) -> list[list[int]]:
-        self.__chunked_raw_art_data = [self.__raw_art_data[x:x + 32] for x in range(0, len(self.__raw_art_data), 32)]
+        self.__chunked_raw_art_data = [
+            self.__raw_art_data[x : x + 32]
+            for x in range(0, len(self.__raw_art_data), 32)
+        ]
         return self.__chunked_raw_art_data
 
     def generate_art_text_string(self) -> str:
         compressed = lzma.compress(bytes(self.__raw_art_data), format=lzma.FORMAT_ALONE)
-        compressed = compressed[:5] + len(self.__raw_art_data).to_bytes(8, 'little') + compressed[13:]
+        compressed = (
+            compressed[:5]
+            + len(self.__raw_art_data).to_bytes(8, "little")
+            + compressed[13:]
+        )
         self.__art_text_string = base64.b64encode(compressed).decode("ascii")
         return self.__art_text_string
 
     def generate_art_image_32x32(self, scale: int = 1) -> Image:
-        image = Image.new('RGB', self.__art_size)
+        image = Image.new("RGB", self.__art_size)
+        image.putdata([RGB_COLOURS[colour] for colour in self.__raw_art_data])
         if scale > 1:
-            image = image.resize((x*scale for x in self.__art_size), resample=Image.BOX)
-        image.putdata([rgb_colours[colour] for colour in self.__raw_art_data])
+            image = image.resize(
+                (self.__art_size[0] * scale, self.__art_size[1] * scale), resample=Image.BOX
+            )
         return image
 
     def __str__(self) -> str:
@@ -68,7 +80,7 @@ class Art:
         chunks.reverse()
         for row in chunks:
             for px in row:
-                pretty_string += (f'{px:2d}' if px > 0 else "  ") + " "
+                pretty_string += (f"{px:2d}" if px > 0 else "  ") + " "
             pretty_string += "\n"
         return pretty_string
 
@@ -79,7 +91,7 @@ class Art:
 # rgb_colours = [tuple(int(h[i+1:i+3], 16) for i in (0, 2, 4)) for h in hex_colours]
 
 
-rgb_colours = [
+RGB_COLOURS = [
     (32, 34, 46),
     (117, 13, 161),
     (227, 69, 126),
@@ -95,9 +107,9 @@ rgb_colours = [
     (194, 251, 144),
     (173, 247, 214),
     (151, 204, 248),
-    (165, 126, 247)
+    (165, 126, 247),
 ]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
