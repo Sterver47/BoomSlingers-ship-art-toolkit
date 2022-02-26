@@ -40,9 +40,9 @@ class Art:
         compressed_data_from_string = base64.b64decode(self.__art_text_string)
 
         compressed_data_from_string = (
-                compressed_data_from_string[:5]
-                + bytes([255] * 8)
-                + compressed_data_from_string[13:]
+            compressed_data_from_string[:5]
+            + bytes([255] * 8)
+            + compressed_data_from_string[13:]
         )
         data = decompress_lzma(compressed_data_from_string)
 
@@ -102,7 +102,7 @@ class Art:
         image.putdata([RGB_COLOURS[c_id] for c_id in big_part])
 
         small_image = Image.new("RGBA", size)
-        small_part = [-1]*60*19
+        small_part = [-1] * 60 * 19
         for row in self.__chunked_small_art:
             small_part += [-1] * 32 + row
         small_image.putdata([RGB_COLOURS[c_id] for c_id in small_part])
@@ -143,7 +143,9 @@ def decompress_lzma(data: bytes) -> bytes:
         if not data:
             break
         if not decomp.eof:
-            raise lzma.LZMAError("Compressed data ended before the end-of-stream marker was reached")
+            raise lzma.LZMAError(
+                "Compressed data ended before the end-of-stream marker was reached"
+            )
     return b"".join(results)
 
 

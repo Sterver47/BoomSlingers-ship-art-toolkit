@@ -22,8 +22,10 @@ def main():
 
     bot.run("OTQ3MTkwNTAwNDYzNjI0MjMy.Yhpp5Q.zsgiMRI5-faQdwJOvrNYe-xXoQU")
 
+
 prefix = ">"
 bot = commands.Bot(command_prefix=prefix)
+
 
 @bot.event
 async def on_ready():
@@ -38,23 +40,23 @@ async def on_message(message):
 
 @bot.command()
 async def ping(ctx):
-    '''
+    """
     This text will be shown in the help command
-    '''
+    """
 
     # Get the latency of the bot
     latency = bot.latency  # Included in the Discord.py library
     # Send it to the user
-    await ctx.send(str(latency*1000) + "ms")
+    await ctx.send(str(latency * 1000) + "ms")
 
 
 @bot.command()
-async def echo(ctx, *, content:str):
+async def echo(ctx, *, content: str):
     await ctx.send(content)
 
 
 @bot.command()
-async def art(ctx, *, content:str):
+async def art(ctx, *, content: str):
     print("Kktina z bota: " + content)
     art = Art(art_text_string=content)
     art.make_art_image_60x24(20).save("output/test.png")
