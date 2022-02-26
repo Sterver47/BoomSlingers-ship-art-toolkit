@@ -127,12 +127,7 @@ class Art:
         return pretty_string
 
 
-# hex_colours = [
-#     '#20222E','#750DA1','#E3457E','#ECAE4C','#86A944','#417D7D','#4352A4','#532E7B','#FEFEFC','#C47EF5','#EC80CB','#FEF670','#C2FB90','#ADF7D6','#97CCF8','#A57EF7'
-# ]
-# rgb_colours = [tuple(int(h[i+1:i+3], 16) for i in (0, 2, 4)) for h in hex_colours]
-
-def decompress_lzma(data):
+def decompress_lzma(data: bytes) -> bytes:
     results = []
     while True:
         decomp = lzma.LZMADecompressor(lzma.FORMAT_AUTO, None, None)
@@ -150,6 +145,13 @@ def decompress_lzma(data):
         if not decomp.eof:
             raise lzma.LZMAError("Compressed data ended before the end-of-stream marker was reached")
     return b"".join(results)
+
+
+# hex_colours = [
+#     '#20222E','#750DA1','#E3457E','#ECAE4C','#86A944','#417D7D','#4352A4','#532E7B','#FEFEFC','#C47EF5','#EC80CB','#FEF670','#C2FB90','#ADF7D6','#97CCF8','#A57EF7'
+# ]
+# rgb_colours = [tuple(int(h[i+1:i+3], 16) for i in (0, 2, 4)) for h in hex_colours]
+
 
 RGB_COLOURS = {
     -1: (0, 0, 0, 0),
