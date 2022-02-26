@@ -6,6 +6,8 @@ authors = ["Stefan Uram <sterver12345@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+"discord.py" = "^1.7.3"
+Pillow = "^9.0.1"
 
 [tool.poetry.dev-dependencies]
 
