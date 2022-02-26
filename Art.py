@@ -38,7 +38,14 @@ class Art:
 
     def generate_raw_art_data(self) -> list[int]:
         compressed_data_from_string = base64.b64decode(self.__art_text_string)
-        data = lzma.decompress(compressed_data_from_string)
+
+        compressed_data_from_string = (
+                compressed_data_from_string[:5]
+                + bytes([255] * 8)
+                + compressed_data_from_string[13:]
+        )
+        data = decompress_lzma(compressed_data_from_string)
+
         length = len(data)
         if length != 1024:
             raise ValueError(f"Data length mismatch ({length} != 1024)")
@@ -125,6 +132,24 @@ class Art:
 # ]
 # rgb_colours = [tuple(int(h[i+1:i+3], 16) for i in (0, 2, 4)) for h in hex_colours]
 
+def decompress_lzma(data):
+    results = []
+    while True:
+        decomp = lzma.LZMADecompressor(lzma.FORMAT_AUTO, None, None)
+        try:
+            res = decomp.decompress(data)
+        except lzma.LZMAError:
+            if results:
+                break  # Leftover data is not a valid LZMA/XZ stream; ignore it.
+            else:
+                raise  # Error on the first iteration; bail out.
+        results.append(res)
+        data = decomp.unused_data
+        if not data:
+            break
+        if not decomp.eof:
+            raise lzma.LZMAError("Compressed data ended before the end-of-stream marker was reached")
+    return b"".join(results)
 
 RGB_COLOURS = {
     -1: (0, 0, 0, 0),
