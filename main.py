@@ -60,15 +60,15 @@ async def echo(ctx, *, content: str):
 async def art(ctx, *, content: str):
     print("LOG | art to convert: " + content)
 
-    file_data = io.BytesIO()
-
     art = Art(art_text_string=content)
-    art.make_art_image_60x24(20).save(file_data, format="PNG")
 
-    file_data.seek(0)
+    with io.BytesIO() as image_data:
+        art.make_art_image_60x24(20).save(image_data, format="PNG")
+        image_data.seek(0)
+        file = discord.File(image_data, filename="art.png")
 
-    file = discord.File(file_data, filename="art.png")
     await ctx.send(file=file)
+    file.close()
 
 
 if __name__ == "__main__":
