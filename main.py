@@ -8,14 +8,15 @@ from discord.ext import commands
 
 def main():
     art_text_string = "XQAAAQAABAAAAAAAAAAAbh5RhjiWQJWnRyI9rtRTFHEIieb8urxGUYiJiIyU9+KHoIwF9T1Sw5De5ZSC5Q1/8SR303lFL5nIhy6qnWmTZBIHvr2bdE2ud4vxFgA="
+    # art_text_string = "XQAAAQAABAAAAAAAAAAAagCPB9wf3D0hwPHOSRp24fYRUj2Yyc4qWZjUPZ3Y1KFcqByiF13P4kVX2KIHuKl8SObmDnDfgV+TyV3hmizrUeCdmcHn6yRb469DkPmBai57vCmvmUWgTThPSxj4qM4w60756DP1Ep0l+RjImt/DBeX8FXdw05fgsQCXZyI9LpciC+jlEOTDlwnswTLvXUUV97iuoda2sTqoMedEg50Zm8uZISf0YMlS/ifL2aOohLzw8fLK/y2/67dWp0476ooxGIIEqn3wiI7uMbjmxokcafcUaFgRSVvOmt1nJZoNdUq5/PQ="
     art = Art(art_text_string=art_text_string)
+    print(art.stringify())
     print(art)
-    print(art.generate_art_text_string())
 
-    """a = [0, 8, 2] * 341 + [0]
-
-    print(art.generate_art_text_string(a))
-    art.split_chunked_data()"""
+    # a = [0, 8, 2] * 341 + [0]
+    # art = Art(raw_art_data=a)
+    # print(art.stringify())
+    # print(art)
 
     art.make_art_image_32x32(20).save("output/image32x32.png")
     art.make_art_image_60x24(20).save("output/image60x24.png")
@@ -57,10 +58,17 @@ async def echo(ctx, *, content: str):
 
 @bot.command()
 async def art(ctx, *, content: str):
-    print("Kktina z bota: " + content)
+    print("LOG | art to convert: " + content)
+
+    file_data = io.BytesIO()
+
     art = Art(art_text_string=content)
-    art.make_art_image_60x24(20).save("output/test.png")
-    await ctx.send(file=discord.File("output/test.png"))
+    art.make_art_image_60x24(20).save(file_data, format="PNG")
+
+    file_data.seek(0)
+
+    file = discord.File(file_data, filename="art.png")
+    await ctx.send(file=file)
 
 
 if __name__ == "__main__":
