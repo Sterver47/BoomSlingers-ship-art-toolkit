@@ -5,7 +5,7 @@ from PIL import Image
 
 class Art:
     __art_size_32x32 = (32, 32)
-    __art_size_50x24 = (60, 24)
+    __art_size_60x24 = (60, 24)
 
     __art_text_string: str = None
     __raw_art_data: list[int] = None
@@ -19,24 +19,23 @@ class Art:
         art_text_string: str = None,
         raw_art_data: list[int] = None,
         chunked_raw_art_data: list[list[int]] = None,
-        auto_generate_data: bool = True,
     ):
         self.__art_text_string = art_text_string
         self.__raw_art_data = raw_art_data
         self.__chunked_raw_art_data = chunked_raw_art_data
-        if auto_generate_data:
-            if art_text_string:
-                self.generate_raw_art_data()
-                self.generate_chunked_raw_art_data()
-            elif raw_art_data:
-                raise Exception("Not implemented.")
-            elif chunked_raw_art_data:
-                raise Exception("Not implemented.")
-            else:
-                raise Exception("Can't generate data without any given data.")
-            self.split_chunked_data()
+        if art_text_string:
+            self.__generate_raw_art_data()
+            self.__generate_chunked_raw_art_data()
+        elif raw_art_data:
+            self.__generate_art_text_string()
+            self.__generate_chunked_raw_art_data()
+        elif chunked_raw_art_data:
+            raise Exception("Not implemented.")
+        else:
+            raise Exception("Can't generate data without any given data.")
+        self.__split_chunked_data()
 
-    def generate_raw_art_data(self) -> list[int]:
+    def __generate_raw_art_data(self):
         compressed_data_from_string = base64.b64decode(self.__art_text_string)
 
         compressed_data_from_string = (
@@ -48,20 +47,17 @@ class Art:
 
         length = len(data)
         if length != 1024:
-            raise ValueError(f"Data length mismatch ({length} != 1024)")
+            data = data[:1024]
+            # raise ValueError(f"Data length mismatch ({length} != 1024)")
         self.__raw_art_data = list(data)
-        return self.__raw_art_data
 
-    def generate_chunked_raw_art_data(self) -> list[list[int]]:
+    def __generate_chunked_raw_art_data(self):
         self.__chunked_raw_art_data = [
             self.__raw_art_data[x : x + 32]
             for x in range(0, len(self.__raw_art_data), 32)
         ]
-        return self.__chunked_raw_art_data
 
-    def generate_art_text_string(self, raw_art_data: list[int] = None) -> str:
-        if raw_art_data:
-            self.__raw_art_data = raw_art_data
+    def __generate_art_text_string(self):
         compressed = lzma.compress(bytes(self.__raw_art_data), format=lzma.FORMAT_ALONE)
         compressed = (
             compressed[:5]
@@ -69,17 +65,15 @@ class Art:
             + compressed[13:]
         )
         self.__art_text_string = base64.b64encode(compressed).decode("ascii")
-        return self.__art_text_string
 
-    def split_chunked_data(self):
-        self.generate_chunked_raw_art_data()
+    def __split_chunked_data(self):
+        self.__generate_chunked_raw_art_data()
         self.__chunked_big_art = self.__chunked_raw_art_data[8:]
         self.__chunked_big_art.reverse()
         self.__chunked_small_art = [
             row[3:-1] for row in self.__chunked_raw_art_data[1:6]
         ]
         self.__chunked_small_art.reverse()
-        print(self.__chunked_small_art)
 
     def make_art_image_32x32(self, scale: int = 1) -> Image:
         size = self.__art_size_32x32
@@ -93,7 +87,7 @@ class Art:
         return image
 
     def make_art_image_60x24(self, scale: int = 1) -> Image:
-        size = self.__art_size_50x24
+        size = self.__art_size_60x24
         image = Image.new("RGBA", size)
 
         big_part = []
@@ -116,7 +110,7 @@ class Art:
             )
         return image
 
-    def __str__(self) -> str:
+    def stringify(self) -> str:
         pretty_string = ""
         chunks = list(self.__chunked_raw_art_data)
         chunks.reverse()
@@ -125,6 +119,12 @@ class Art:
                 pretty_string += (f"{px:2d}" if px > 0 else "  ") + " "
             pretty_string += "\n"
         return pretty_string
+
+    def get_art_text_string(self) -> str:
+        return self.__art_text_string
+
+    __str__ = get_art_text_string
+
 
 
 def decompress_lzma(data: bytes) -> bytes:
