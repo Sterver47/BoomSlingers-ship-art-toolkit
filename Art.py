@@ -126,7 +126,6 @@ class Art:
     __str__ = get_art_text_string
 
 
-
 def decompress_lzma(data: bytes) -> bytes:
     results = []
     while True:
