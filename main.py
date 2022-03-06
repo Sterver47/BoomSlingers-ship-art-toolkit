@@ -2,9 +2,9 @@ import io
 
 from Art import Art
 
-import discord
-from discord.ext import commands
 from PIL import Image
+
+from DiscordBot import Bot
 
 
 def main():
@@ -30,54 +30,8 @@ def main():
     # image.paste(artt, (130, 205), artt)
     # image.save("./result.png")
 
+    bot = Bot()
     bot.run("OTQ3MTkwNTAwNDYzNjI0MjMy.Yhpp5Q.zsgiMRI5-faQdwJOvrNYe-xXoQU")
-
-
-prefix = ">"
-bot = commands.Bot(command_prefix=prefix)
-
-
-@bot.event
-async def on_ready():
-    print("Everything's all ready to go~")
-
-
-@bot.event
-async def on_message(message):
-    print("The message's content was", message.content)
-    await bot.process_commands(message)
-
-
-@bot.command()
-async def ping(ctx):
-    """
-    This text will be shown in the help command
-    """
-
-    # Get the latency of the bot
-    latency = bot.latency  # Included in the Discord.py library
-    # Send it to the user
-    await ctx.send(str(latency * 1000) + "ms")
-
-
-@bot.command()
-async def echo(ctx, *, content: str):
-    await ctx.send(content)
-
-
-@bot.command()
-async def art(ctx, *, content: str):
-    print("LOG | art to convert: " + content)
-
-    art = Art(art_text_string=content)
-
-    with io.BytesIO() as image_data:
-        art.make_art_with_overlay().save(image_data, format="PNG")
-        image_data.seek(0)
-        file = discord.File(image_data, filename="art.png")
-
-    await ctx.send(file=file)
-    file.close()
 
 
 if __name__ == "__main__":

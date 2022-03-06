@@ -111,8 +111,8 @@ class Art:
         return image
 
     def make_art_with_overlay(self) -> Image:
-        engine_color_1 = RGB_COLOURS[self.__chunked_raw_art_data[2][1]]
-        engine_color_2 = RGB_COLOURS[self.__chunked_raw_art_data[3][1]]
+        engine_color_1 = RGB_COLOURS[self.__chunked_raw_art_data[3][1]]
+        engine_color_2 = RGB_COLOURS[self.__chunked_raw_art_data[4][1]]
 
         image = Image.new("RGBA", (984, 837))
         draw = ImageDraw.Draw(image)
