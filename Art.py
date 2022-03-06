@@ -1,6 +1,6 @@
 import base64
 import lzma
-from PIL import Image
+from PIL import Image, ImageDraw
 
 
 class Art:
@@ -110,10 +110,27 @@ class Art:
             )
         return image
 
+    def make_art_with_overlay(self) -> Image:
+        engine_color_1 = RGB_COLOURS[self.__chunked_raw_art_data[2][1]]
+        engine_color_2 = RGB_COLOURS[self.__chunked_raw_art_data[3][1]]
+
+        image = Image.new("RGBA", (984, 837))
+        draw = ImageDraw.Draw(image)
+        draw.rectangle(((0, 0), (150, 837)), fill=engine_color_1)
+        draw.rectangle(((200, 0), (330, 837)), fill=engine_color_2)
+
+        art_image_60x24_s13 = self.make_art_image_60x24(13)
+        image.paste(art_image_60x24_s13, (130, 205), art_image_60x24_s13)
+
+        overlay = Image.open("./overlay.png")
+        image.paste(overlay, (0, 0), overlay)
+
+        return image
+
     def stringify(self) -> str:
         pretty_string = ""
         chunks = list(self.__chunked_raw_art_data)
-        chunks.reverse()
+        # chunks.reverse()
         for row in chunks:
             for px in row:
                 pretty_string += (f"{px:2d}" if px > 0 else "  ") + " "
