@@ -10,19 +10,22 @@ class Bot(discord.Client):
         if message.author == self.user:
             return
 
-        content = message.content
+        content_string = str(message.content)
 
-        print("The message's content was", content)
+        print("The message's content was", content_string)
 
-        if content.startswith("XQAAA"):
-            print("LOG | art to convert: " + content)
+        if "XQAAAQAAB" in content_string:
+            words = content_string.split()
+            for word in words:
+                if word.startswith("XQAAAQAAB"):
+                    print("LOG | art to convert: " + word)
 
-            art = Art(art_text_string=content)
+                    art = Art(art_text_string=word)
 
-            with io.BytesIO() as image_data:
-                art.make_art_with_overlay().save(image_data, format="PNG")
-                image_data.seek(0)
-                file = discord.File(image_data, filename="art.png")
+                    with io.BytesIO() as image_data:
+                        art.make_art_with_overlay().save(image_data, format="PNG")
+                        image_data.seek(0)
+                        file = discord.File(image_data, filename="art.png")
 
-            await message.channel.send("This is your art", file=file)
-            file.close()
+                    await message.channel.send(str(message.author.mention)+"'s art", file=file)
+                    file.close()
