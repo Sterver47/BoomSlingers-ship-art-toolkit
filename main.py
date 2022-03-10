@@ -1,6 +1,10 @@
 import logging
 import sys
+import os
 from DiscordBot import Bot
+
+TOKEN = os.environ.get("TOKEN")
+# "OTQ3MTkwNTAwNDYzNjI0MjMy.Yhpp5Q.zsgiMRI5-faQdwJOvrNYe-xXoQU"
 
 file_handler = logging.FileHandler(filename='tmp.log')
 stdout_handler = logging.StreamHandler(sys.stdout)
@@ -19,7 +23,7 @@ def main():
     logger.debug("Creating Bot...")
     bot = Bot()
     logger.info("Starting Bot...")
-    bot.run("OTQ3MTkwNTAwNDYzNjI0MjMy.Yhpp5Q.zsgiMRI5-faQdwJOvrNYe-xXoQU")
+    bot.run(TOKEN)
 
 
 if __name__ == "__main__":
