@@ -4,6 +4,8 @@ from PIL import Image, ImageDraw
 
 
 class Art:
+    seen = False
+
     __art_size_32x32 = (32, 32)
     __art_size_60x24 = (60, 24)
 
@@ -49,6 +51,14 @@ class Art:
         if length != 1024:
             data = data[:1024]
             # raise ValueError(f"Data length mismatch ({length} != 1024)")
+
+        signature = bytes([15, 4, 0, 2, 4])
+        signature_line = signature*6
+
+        if signature in data[2:32]+data[32*6+2:32*6+2+len(signature_line)*2]:
+            self.seen = True
+
+        data = data[:2] + signature_line + data[32:32*6+2] + signature_line*2 + data[32*6+2+len(signature_line)*2:]
         self.__raw_art_data = list(data)
 
     def __generate_chunked_raw_art_data(self):
@@ -138,6 +148,7 @@ class Art:
         return pretty_string
 
     def get_art_text_string(self) -> str:
+        self.__generate_art_text_string()
         return self.__art_text_string
 
     __str__ = get_art_text_string

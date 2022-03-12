@@ -1,7 +1,6 @@
 import io
 import logging
 import random
-from random import random
 
 import discord
 from Art import Art
@@ -19,7 +18,7 @@ class Bot(discord.Client):
 
         content_string = str(message.content)
 
-        if "XQAAAQAAB" in content_string:
+        if "XQAAAQAAB" in content_string or "XQAAgAA" in content_string:
             logger.info(f"XQAAAQAAB found in message by {message.author}: {content_string}")
             async with message.channel.typing():
                 await send_art_image(message)
@@ -29,7 +28,7 @@ async def send_art_image(message):
     words = str(message.content).split()
     art_strings = []
     for word in words:
-        if word.startswith("XQAAAQAAB"):
+        if word.startswith(("XQAAAQAAB", "XQAAgAA")):
             art_strings.append(word)
 
     if len(art_strings) > 2:
@@ -44,12 +43,13 @@ async def send_art_image(message):
             art = Art(art_text_string=art_string)
             with io.BytesIO() as image_data:
                 art.make_art_with_overlay().save(image_data, format="PNG")
+                # art.make_art_image_32x32(10).save(image_data, format="PNG")
                 image_data.seek(0)
                 file = discord.File(image_data, filename="art.png")
             await message.channel.send(
-                f"{str(message.author.mention)} sent this {random.choice(['great', 'fabulous', 'nice', 'marvelous', 'amazing', 'awesome'])} art:\n(copyable code is below the image)",
+                f"{str(message.author.mention)} sent this {random.choice(['great', 'fabulous', 'nice', 'marvelous', 'amazing', 'awesome'])} art:\n(copyable code is below the image){' :peace:' if art.seen else ''}",
                 file=file)
-            await message.channel.send(f"```{art_string}```")
+            await message.channel.send(f"```{art.get_art_text_string()}```")
             file.close()
         except Exception as e:
             await message.channel.send(
