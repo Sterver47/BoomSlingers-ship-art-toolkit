@@ -5,6 +5,7 @@ from PIL import Image, ImageDraw
 
 class Art:
     seen = False
+    smoothing = False
 
     __art_size_32x32 = (32, 32)
     __art_size_60x24 = (60, 24)
@@ -57,6 +58,8 @@ class Art:
 
         if signature in data[2:32]+data[32*6+2:32*6+2+len(signature_line)*2]:
             self.seen = True
+        if data[0] == 1:
+            self.smoothing = True
 
         data = data[:2] + signature_line + data[32:32*6+2] + signature_line*2 + data[32*6+2+len(signature_line)*2:]
         self.__raw_art_data = list(data)
