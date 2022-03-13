@@ -28,7 +28,10 @@ class Bot(discord.Client):
 async def send_art_image(message):
     words = str(message.content).split()
     art_strings = []
-    mirror = True if "mirror" in words else False
+    lowercase_words = []
+    for word in words:
+        lowercase_words.append(word.lower())
+    mirror = True if "mirror" in lowercase_words else False
     for word in words:
         if word.startswith(("XQAAAQAAB", "XQAAgAA")):
             art_strings.append(word)
