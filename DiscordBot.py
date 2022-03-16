@@ -25,7 +25,7 @@ class Bot(discord.Client):
 
         chan_name = str(message.channel)
         guild_name = str(message.guild)
-        # author_name = str(message.author)
+        author_name = str(message.author)
 
         content_string = str(message.content)
 
@@ -36,11 +36,12 @@ class Bot(discord.Client):
         ):
             attachment = message.attachments[0]
             if attachment.filename.lower().endswith((".jpg", ".jpeg", ".png")):
+                logger.info(f"Image attachment found in message by {author_name} in #{chan_name}@{guild_name}: {attachment}")
                 async with message.channel.typing():
                     await self.make_art_from_image(message)
 
         elif "XQAAAQAAB" in content_string or "XQAAgAA" in content_string:
-            logger.info(f"XQAAAQAAB found in message by {message.author}: {content_string}")
+            logger.info(f"XQAAAQAAB found in message by {author_name} in #{chan_name}@{guild_name}: {content_string}")
             async with message.channel.typing():
                 await make_image_from_artcode(message)
 
@@ -77,8 +78,7 @@ class Bot(discord.Client):
                 await message.channel.send(f"```{art.get_art_text_string()}```")
         except Exception as e:
             logger.exception(e)
-            await message.channel.send(
-                "Oh no. Something horrible happened, and I couldn't process the image you've sent. :sob: You can try to contact my Creator Sterver#0769 and tell him about this.")
+            await message.channel.send("Oh no. Something horrible happened, and I couldn't process the image you've sent. :sob: You can try to contact my Creator Sterver#0769 and tell him about this.")
         self.__image_to_art_queue -= 1
 
 
