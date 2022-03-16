@@ -2,11 +2,14 @@ import io
 import logging
 import random
 
-import PIL.ImageOps
+from PIL import ImageOps
 import discord
-from Art import Art
+from Art import Art, image_to_art
 
 logger = logging.getLogger(__name__)
+
+image_to_art_allowed_channels = ["private-devel"]
+image_to_art_allowed_guilds = ["S."]
 
 
 class Bot(discord.Client):
@@ -16,6 +19,19 @@ class Bot(discord.Client):
     async def on_message(self, message):
         if message.author == self.user:
             return
+
+        chan_name = str(message.channel)
+        guild_name = str(message.guild)
+
+        if message.attachments and (
+                chan_name in image_to_art_allowed_channels
+                or guild_name in image_to_art_allowed_guilds
+                or "Direct Message" in chan_name
+        ):
+            attachment = message.attachments[0]
+            if attachment.filename.lower().endswith((".jpg", ".jpeg", ".png")):
+                await make_art_from_image(message)
+                return
 
         content_string = str(message.content)
 
@@ -46,8 +62,7 @@ async def send_art_image(message):
         logger.info(f"Trying to convert '{art_string}' from {message.author}...")
         try:
             art = Art(art_text_string=art_string)
-            image = art.make_art_with_overlay()
-            image = PIL.ImageOps.mirror(image) if mirror else image
+            image = art.make_art_with_overlay(mirror=mirror)
             with io.BytesIO() as image_data:
                 image.save(image_data, format="PNG")
                 # art.make_art_image_32x32(10).save(image_data, format="PNG")
@@ -65,3 +80,18 @@ async def send_art_image(message):
                 f"Unfortunately, I've struggled with converting the art code you shared into an image. :confused: Please, try to paste it into the in-game paint shop and if it works there, report it to my Creator: Sterver#0769. He probably messed something up in my code... :man_facepalming: The art code I failed to convert was:")
             await message.channel.send(f"```{art_string}```")
             logging.exception(e)
+
+
+async def make_art_from_image(message):
+    attachment = message.attachments[0]
+    with io.BytesIO() as image_data:
+        print(attachment)
+        await attachment.save(image_data)
+        art = image_to_art(image_data)
+        image = art.make_art_with_overlay()
+        with io.BytesIO() as image_data:
+            image.save(image_data, format="PNG")
+            # art.make_art_image_32x32(10).save(image_data, format="PNG")
+            image_data.seek(0)
+            file = discord.File(image_data, filename="art.png")
+            await message.channel.send(f"```{art.get_art_text_string()}```", file=file)

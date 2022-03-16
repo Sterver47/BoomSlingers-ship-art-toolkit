@@ -1,6 +1,9 @@
 import base64
+import io
 import lzma
-from PIL import Image, ImageDraw
+import numpy
+from pyxelate import Pyx, Pal
+from PIL import Image, ImageDraw, ImageOps
 
 
 class Art:
@@ -18,10 +21,10 @@ class Art:
     __chunked_small_art: list[list[int]] = None
 
     def __init__(
-        self,
-        art_text_string: str = None,
-        raw_art_data: list[int] = None,
-        chunked_raw_art_data: list[list[int]] = None,
+            self,
+            art_text_string: str = None,
+            raw_art_data: list[int] = None,
+            chunked_raw_art_data: list[list[int]] = None,
     ):
         self.__art_text_string = art_text_string
         self.__raw_art_data = raw_art_data
@@ -42,9 +45,9 @@ class Art:
         compressed_data_from_string = base64.b64decode(self.__art_text_string)
 
         compressed_data_from_string = (
-            compressed_data_from_string[:5]
-            + bytes([255] * 8)
-            + compressed_data_from_string[13:]
+                compressed_data_from_string[:5]
+                + bytes([255] * 8)
+                + compressed_data_from_string[13:]
         )
         data = decompress_lzma(compressed_data_from_string)
 
@@ -54,28 +57,29 @@ class Art:
             # raise ValueError(f"Data length mismatch ({length} != 1024)")
 
         signature = bytes([15, 4, 0, 2, 4])
-        signature_line = signature*6
+        signature_line = signature * 6
 
-        if signature in data[2:32]+data[32*6+2:32*6+2+len(signature_line)*2]:
+        if signature in data[2:32] + data[32 * 6 + 2:32 * 6 + 2 + len(signature_line) * 2]:
             self.seen = True
         if data[0] == 1:
             self.smoothing = True
 
-        data = data[:2] + signature_line + data[32:32*6+2] + signature_line*2 + data[32*6+2+len(signature_line)*2:]
+        data = data[:2] + signature_line + data[32:32 * 6 + 2] + signature_line * 2 + data[32 * 6 + 2 + len(
+            signature_line) * 2:]
         self.__raw_art_data = list(data)
 
     def __generate_chunked_raw_art_data(self):
         self.__chunked_raw_art_data = [
-            self.__raw_art_data[x : x + 32]
+            self.__raw_art_data[x: x + 32]
             for x in range(0, len(self.__raw_art_data), 32)
         ]
 
     def __generate_art_text_string(self):
         compressed = lzma.compress(bytes(self.__raw_art_data), format=lzma.FORMAT_ALONE)
         compressed = (
-            compressed[:5]
-            + len(self.__raw_art_data).to_bytes(8, "little")
-            + compressed[13:]
+                compressed[:5]
+                + len(self.__raw_art_data).to_bytes(8, "little")
+                + compressed[13:]
         )
         self.__art_text_string = base64.b64encode(compressed).decode("ascii")
 
@@ -123,7 +127,7 @@ class Art:
             )
         return image
 
-    def make_art_with_overlay(self) -> Image:
+    def make_art_with_overlay(self, mirror: bool = False) -> Image:
         engine_color_1 = RGB_COLOURS[self.__chunked_raw_art_data[3][1]]
         engine_color_2 = RGB_COLOURS[self.__chunked_raw_art_data[4][1]]
 
@@ -138,7 +142,7 @@ class Art:
         overlay = Image.open("./overlay.png")
         image.paste(overlay, (0, 0), overlay)
 
-        return image
+        return ImageOps.mirror(image) if mirror else image
 
     def stringify(self) -> str:
         pretty_string = ""
@@ -179,10 +183,37 @@ def decompress_lzma(data: bytes) -> bytes:
     return b"".join(results)
 
 
-# hex_colours = [
-#     '#20222E','#750DA1','#E3457E','#ECAE4C','#86A944','#417D7D','#4352A4','#532E7B','#FEFEFC','#C47EF5','#EC80CB','#FEF670','#C2FB90','#ADF7D6','#97CCF8','#A57EF7'
-# ]
-# rgb_colours = [tuple(int(h[i+1:i+3], 16) for i in (0, 2, 4)) for h in hex_colours]
+def image_to_art(image_data: io.BytesIO) -> Art:
+    image = Image.open(image_data)
+
+    image = numpy.array(image)
+
+    my_pal = Pal.from_hex(hex_colours)
+
+    # 1) Instantiate Pyx transformer
+    pyx = Pyx(height=24, width=32, palette=my_pal, dither="none")
+
+    # 2) fit an image, allow Pyxelate to learn the color palette
+    if len(image.shape) < 3:
+        image.shape = tuple(list(image.shape)+[4])
+    pyx.fit(image)
+
+    # 3) transform image to pixel art using the learned color palette
+    new_image = pyx.transform(image)
+
+    pi = ImageOps.flip(Image.fromarray(new_image))
+   # pixels = [px[:-1] if px[-1] == 255 else (32, 34, 46) for px in pi.getdata()]
+    pixels = [(px[:-1] if px[-1] == 255 else (32, 34, 46)) if len(px) > 3 else px for px in pi.getdata()]
+    raw_art_data = [0]*8*32+[rgb_colours.index(px) for px in pixels]
+    art = Art(raw_art_data=raw_art_data)
+    return art
+
+
+hex_colours = [
+    '#20222E', '#750DA1', '#E3457E', '#ECAE4C', '#86A944', '#417D7D', '#4352A4', '#532E7B', '#FEFEFC', '#C47EF5',
+    '#EC80CB', '#FEF670', '#C2FB90', '#ADF7D6', '#97CCF8', '#A57EF7'
+]
+rgb_colours = [tuple(int(h[i+1:i+3], 16) for i in (0, 2, 4)) for h in hex_colours]
 
 
 RGB_COLOURS = {
