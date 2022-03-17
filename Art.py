@@ -186,10 +186,13 @@ def image_to_art(image_data: io.BytesIO) -> Art:
     image = Image.open(image_data)
     if image.mode not in ("RGB", "RGBA"):
         image = image.convert(mode="RGB")
-    # image = image.resize((32, 24), Image.NEAREST)
+
+    if image.size[0]*image.size[1] > 1000*1000:
+        image = image.resize((1000, 1000), Image.NEAREST)
+
+    #image = image.resize((32, 24), Image.NEAREST)
 
     image = numpy.array(image)
-    print(image.shape)
 
     my_pal = Pal.from_hex(hex_colours)
 
