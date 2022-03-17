@@ -64,8 +64,7 @@ class Art:
         if data[0] == 1:
             self.smoothing = True
 
-        data = data[:2] + signature_line + data[32:32 * 6 + 2] + signature_line * 2 + data[32 * 6 + 2 + len(
-            signature_line) * 2:]
+        data = data[:2] + signature_line + data[32:32 * 6 + 2] + signature_line * 2 + data[32 * 6 + 2 + len(signature_line) * 2:]
         self.__raw_art_data = list(data)
 
     def __generate_chunked_raw_art_data(self):
@@ -185,24 +184,23 @@ def decompress_lzma(data: bytes) -> bytes:
 
 def image_to_art(image_data: io.BytesIO) -> Art:
     image = Image.open(image_data)
+    # image = image.resize((32, 24), Image.NEAREST)
 
     image = numpy.array(image)
 
     my_pal = Pal.from_hex(hex_colours)
 
-    # 1) Instantiate Pyx transformer
-    pyx = Pyx(height=24, width=32, palette=my_pal, dither="none")
+    pyx = Pyx(height=24, width=32, palette=my_pal, dither="none", sobel=3, depth=1)  # 1) Instantiate Pyx transformer
 
-    # 2) fit an image, allow Pyxelate to learn the color palette
     if len(image.shape) < 3:
         image.shape = tuple(list(image.shape)+[4])
-    pyx.fit(image)
+    pyx.fit(image)  # 2) fit an image, allow Pyxelate to learn the color palette
 
     # 3) transform image to pixel art using the learned color palette
     new_image = pyx.transform(image)
 
     pi = ImageOps.flip(Image.fromarray(new_image))
-   # pixels = [px[:-1] if px[-1] == 255 else (32, 34, 46) for px in pi.getdata()]
+    # pixels = [px[:-1] if px[-1] == 255 else (32, 34, 46) for px in pi.getdata()]
     pixels = [(px[:-1] if px[-1] == 255 else (32, 34, 46)) if len(px) > 3 else px for px in pi.getdata()]
     raw_art_data = [0]*8*32+[rgb_colours.index(px) for px in pixels]
     art = Art(raw_art_data=raw_art_data)
