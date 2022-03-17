@@ -184,20 +184,23 @@ def decompress_lzma(data: bytes) -> bytes:
 
 def image_to_art(image_data: io.BytesIO) -> Art:
     image = Image.open(image_data)
+    if image.mode not in ("RGB", "RGBA"):
+        image = image.convert(mode="RGB")
     # image = image.resize((32, 24), Image.NEAREST)
 
     image = numpy.array(image)
+    print(image.shape)
 
     my_pal = Pal.from_hex(hex_colours)
 
     pyx = Pyx(height=24, width=32, palette=my_pal, dither="none", sobel=3, depth=1)  # 1) Instantiate Pyx transformer
 
-    if len(image.shape) < 3:
-        image.shape = tuple(list(image.shape)+[4])
+    # if len(image.shape) < 3:
+    #     image.shape = tuple(list(image.shape)+[4])
+
     pyx.fit(image)  # 2) fit an image, allow Pyxelate to learn the color palette
 
-    # 3) transform image to pixel art using the learned color palette
-    new_image = pyx.transform(image)
+    new_image = pyx.transform(image)  # 3) transform image to pixel art using the learned color palette
 
     pi = ImageOps.flip(Image.fromarray(new_image))
     # pixels = [px[:-1] if px[-1] == 255 else (32, 34, 46) for px in pi.getdata()]
