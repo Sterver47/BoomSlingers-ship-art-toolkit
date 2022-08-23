@@ -16,18 +16,24 @@ class Bot(discord.Client):
     __image_to_art_queue: int = 0
     __user_queue: dict[str, list[time.time]] = {}
 
-    async def on_ready(self):
+    @staticmethod
+    async def on_ready() -> None:
         logger.info("Discord Bot is ready...")
 
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message) -> None:
         if message.author == self.user:
-            return
+            return  # doesn't respond to itself
 
         chan_name = str(message.channel)
         guild_name = str(message.guild)
         author_name = str(message.author)
 
         content_string = str(message.content)
+
+        message_contains_art_string = "XQAAAQAAB" in content_string or "XQAAgAA" in content_string
+
+        if message.attachments or message_contains_art_string:
+            await self.change_presence(activity=discord.Game(name="with some art"))
 
         if message.attachments and (
                 chan_name in image_to_art_allowed_channels
@@ -40,12 +46,14 @@ class Bot(discord.Client):
                 async with message.channel.typing():
                     await self.make_art_from_image(message)
 
-        elif "XQAAAQAAB" in content_string or "XQAAgAA" in content_string:
+        elif message_contains_art_string:
             logger.info(f"XQAAAQAAB found in message by {author_name} in #{chan_name}@{guild_name}: {content_string}")
             async with message.channel.typing():
                 await make_image_from_artcode(message)
 
-    async def make_art_from_image(self, message):
+        await self.change_presence(activity=None)
+
+    async def make_art_from_image(self, message: discord.Message) -> None:
         author_name = str(message.author)
 
         if author_name in self.__user_queue:
@@ -82,7 +90,7 @@ class Bot(discord.Client):
         self.__image_to_art_queue -= 1
 
 
-async def make_image_from_artcode(message):
+async def make_image_from_artcode(message: discord.Message) -> None:
     words = str(message.content).split()
     art_strings = []
     lowercase_words = []

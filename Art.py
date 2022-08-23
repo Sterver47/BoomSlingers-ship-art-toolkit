@@ -29,6 +29,7 @@ class Art:
         self.__art_text_string = art_text_string
         self.__raw_art_data = raw_art_data
         self.__chunked_raw_art_data = chunked_raw_art_data
+
         if art_text_string:
             self.__generate_raw_art_data()
             self.__generate_chunked_raw_art_data()
@@ -39,6 +40,7 @@ class Art:
             raise Exception("Not implemented.")
         else:
             raise Exception("Can't generate data without any given data.")
+
         self.__split_chunked_data()
 
     def __generate_raw_art_data(self):
@@ -64,7 +66,8 @@ class Art:
         if data[0] == 1:
             self.smoothing = True
 
-        data = data[:2] + signature_line + data[32:32 * 6 + 2] + signature_line * 2 + data[32 * 6 + 2 + len(signature_line) * 2:]
+        data = data[:2] + signature_line + data[32:32 * 6 + 2] + signature_line * 2 + data[32 * 6 + 2 + len(
+            signature_line) * 2:]
         self.__raw_art_data = list(data)
 
     def __generate_chunked_raw_art_data(self):
@@ -92,6 +95,11 @@ class Art:
         self.__chunked_small_art.reverse()
 
     def make_art_image_32x32(self, scale: int = 1) -> Image:
+        """ Make 32x32 art image.
+
+        :param scale: int - Scale the art image.
+        :return: Image - 32x32 art image."""
+
         size = self.__art_size_32x32
         image = Image.new("RGB", size)
         image.putdata([RGB_COLOURS[c_id] for c_id in self.__raw_art_data])
@@ -103,6 +111,12 @@ class Art:
         return image
 
     def make_art_image_60x24(self, scale: int = 1) -> Image:
+        """ Make 60x24 art image.
+
+        :param scale: int - Scale the art image.
+        :return: Image - The art image.
+        """
+
         size = self.__art_size_60x24
         image = Image.new("RGBA", size)
 
@@ -127,6 +141,12 @@ class Art:
         return image
 
     def make_art_with_overlay(self, mirror: bool = False) -> Image:
+        """ Make art image with overlay.
+
+        :param mirror: bool - Mirror the art image.
+        :return: Image - Art image with overlay.
+        """
+
         engine_color_1 = RGB_COLOURS[self.__chunked_raw_art_data[3][1]]
         engine_color_2 = RGB_COLOURS[self.__chunked_raw_art_data[4][1]]
 
@@ -144,6 +164,11 @@ class Art:
         return ImageOps.mirror(image) if mirror else image
 
     def stringify(self) -> str:
+        """ Returns the string of chunked raw art data.
+
+        :return: str - The string of chunked raw art data.
+        """
+
         pretty_string = ""
         chunks = list(self.__chunked_raw_art_data)
         # chunks.reverse()
@@ -154,6 +179,11 @@ class Art:
         return pretty_string
 
     def get_art_text_string(self) -> str:
+        """ Returns the art text string.
+
+        :return: str - the art text string.
+        """
+
         self.__generate_art_text_string()
         return self.__art_text_string
 
@@ -161,6 +191,11 @@ class Art:
 
 
 def decompress_lzma(data: bytes) -> bytes:
+    """ Decompress LZMA compressed data.
+
+    :param data: bytes - the compressed data.
+    :return: bytes - the decompressed data.
+    """
     results = []
     while True:
         decomp = lzma.LZMADecompressor(lzma.FORMAT_AUTO, None, None)
@@ -176,39 +211,42 @@ def decompress_lzma(data: bytes) -> bytes:
         if not data:
             break
         if not decomp.eof:
-            raise lzma.LZMAError(
-                "Compressed data ended before the end-of-stream marker was reached"
-            )
+            raise lzma.LZMAError("Compressed data ended before the end-of-stream marker was reached")
     return b"".join(results)
 
 
 def image_to_art(image_data: io.BytesIO) -> Art:
+    """ Convert image to art.
+
+    :param image_data: io.BytesIO - The image data.
+    :return: Art - The art.
+    """
+
     image = Image.open(image_data)
     if image.mode not in ("RGB", "RGBA"):
         image = image.convert(mode="RGB")
 
-    if image.size[0]*image.size[1] > 1000*1000:
+    if image.size[0] * image.size[1] > 1000 * 1000:
         image = image.resize((1000, 1000), Image.NEAREST)
 
-    #image = image.resize((32, 24), Image.NEAREST)
+    # image = image.resize((32, 24), Image.NEAREST)
 
     image = numpy.array(image)
 
     my_pal = Pal.from_hex(hex_colours)
 
-    pyx = Pyx(height=24, width=32, palette=my_pal, dither="none", sobel=3, depth=1)  # 1) Instantiate Pyx transformer
+    pyx = Pyx(height=24, width=32, palette=my_pal, dither="none", sobel=3, depth=1)
 
     # if len(image.shape) < 3:
     #     image.shape = tuple(list(image.shape)+[4])
 
-    pyx.fit(image)  # 2) fit an image, allow Pyxelate to learn the color palette
-
-    new_image = pyx.transform(image)  # 3) transform image to pixel art using the learned color palette
+    pyx.fit(image)
+    new_image = pyx.transform(image)
 
     pi = ImageOps.flip(Image.fromarray(new_image))
     # pixels = [px[:-1] if px[-1] == 255 else (32, 34, 46) for px in pi.getdata()]
     pixels = [(px[:-1] if px[-1] == 255 else (32, 34, 46)) if len(px) > 3 else px for px in pi.getdata()]
-    raw_art_data = [0]*8*32+[rgb_colours.index(px) for px in pixels]
+    raw_art_data = [0] * 8 * 32 + [rgb_colours.index(px) for px in pixels]
     art = Art(raw_art_data=raw_art_data)
     return art
 
@@ -217,8 +255,7 @@ hex_colours = [
     '#20222E', '#750DA1', '#E3457E', '#ECAE4C', '#86A944', '#417D7D', '#4352A4', '#532E7B', '#FEFEFC', '#C47EF5',
     '#EC80CB', '#FEF670', '#C2FB90', '#ADF7D6', '#97CCF8', '#A57EF7'
 ]
-rgb_colours = [tuple(int(h[i+1:i+3], 16) for i in (0, 2, 4)) for h in hex_colours]
-
+rgb_colours = [tuple(int(h[i + 1:i + 3], 16) for i in (0, 2, 4)) for h in hex_colours]
 
 RGB_COLOURS = {
     -1: (0, 0, 0, 0),

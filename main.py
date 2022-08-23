@@ -4,7 +4,6 @@ import os
 from DiscordBot import Bot
 
 TOKEN = os.environ.get("TOKEN")
-# "OTQ3MTkwNTAwNDYzNjI0MjMy.Yhpp5Q.zsgiMRI5-faQdwJOvrNYe-xXoQU"
 
 file_handler = logging.FileHandler(filename='tmp.log')
 stdout_handler = logging.StreamHandler(sys.stdout)
