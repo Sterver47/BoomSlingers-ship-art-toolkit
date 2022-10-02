@@ -80,10 +80,10 @@ class Bot(discord.Client):
                     image.save(image_data, format="PNG")
                     image_data.seek(0)
                     file = discord.File(image_data, filename="art.png")
-                await message.channel.send(f"Okay, this is all I could do. It's not simple to use only 16 specific colours and this small resolution to achieve perfect results. :sweat_smile: I hope it's not that bad. Actually, if the art looks good, don't forget to share it on the official **Boom Slingers** Discord server *(#your-teams-and-ships)*! :v: I'm sending the copyable art code below the image.", file=file)
+                await message.channel.send(f"Okay, this is all I could do. It's not simple to use only 16 specific colours and this small resolution to achieve perfect results. :sweat_smile: I hope it's not that bad. Actually, if the art looks good, don't forget to share it on the official **Boom Slingers** Discord server *(#teams-and-ships)*! :v: I'm sending the copyable art code below the image.", file=file)
                 file.close()
                 await msg.delete()
-                await message.channel.send(f"```{art.get_art_text_string()}```")
+                await message.channel.send(f"{art.get_art_text_string()}")
         except Exception as e:
             logger.exception(e)
             await message.channel.send("Oh no. Something horrible happened, and I couldn't process the image you've sent. :sob: You can try to contact my Creator Sterver#0769 and tell him about this.")
@@ -117,12 +117,12 @@ async def make_image_from_artcode(message: discord.Message) -> None:
                 image_data.seek(0)
                 file = discord.File(image_data, filename="art.png")
             await message.channel.send(
-                f"{str(message.author.mention)} sent this {random.choice(['great', 'fabulous', 'nice', 'marvelous', 'amazing', 'awesome'])} art:\n(copyable code is below the image){' :peace:' if art.seen else ''}",
+                f"{str(message.author.mention)} sent this {random.choice(['great', 'fabulous', 'nice', 'marvelous', 'amazing', 'awesome'])} art:\n{' :peace:' if art.seen else ''}",
                 file=file)
             file.close()
             if art.smoothing:
                 await message.channel.send("Oh, yes, I see the spaceship art is not quite right. It should be smooth. :cow: However, my Creator hasn't implemented a smoothing algorithm in my code. He said it's tough, but I think he's just lazy. Hopefully, he will implement it in the future. Sorry for now. :confused:")
-            await message.channel.send(f"```{art.get_art_text_string()}```")
+            # await message.channel.send(f"```{art.get_art_text_string()}```")
         except Exception as e:
             await message.channel.send(
                 f"Unfortunately, I've struggled with converting the art code you shared into an image. :confused: Please, try to paste it into the in-game paint shop and if it works there, report it to my Creator: Sterver#0769. He probably messed something up in my code... :man_facepalming: The art code I failed to convert was:")
