@@ -80,7 +80,7 @@ class Bot(discord.Client):
                     image.save(image_data, format="PNG")
                     image_data.seek(0)
                     file = discord.File(image_data, filename="art.png")
-                await message.channel.send(f"Okay, this is all I could do. It's not simple to use only 16 specific colours and this small resolution to achieve perfect results. :sweat_smile: I hope it's not that bad. Actually, if the art looks good, don't forget to share it on the official **Boom Slingers** Discord server *(#teams-and-ships)*! :v: I'm sending the copyable art code below the image.", file=file)
+                await message.channel.send(f"Okay, this is all I could do. It's not easy to use only 16 specific colours and this small resolution to achieve perfect results. :sweat_smile: I hope it's not that bad. Actually, if the art looks good, don't forget to share it on the official **Boom Slingers** Discord server *(<#911700820016373791>)*! :v: I'm sending the copyable art code below the image.", file=file)
                 file.close()
                 await msg.delete()
                 await message.channel.send(f"{art.get_art_text_string()}")
